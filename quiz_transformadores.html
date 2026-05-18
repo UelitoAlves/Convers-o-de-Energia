@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quiz — Introdução aos Transformadores</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --surface2: #eef0f4;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.15);
+    --accent: #1a56db;
+    --accent-light: #e8f0fe;
+    --green: #057a55;
+    --green-bg: #f0fdf4;
+    --green-border: #6ee7b7;
+    --red: #c81e1e;
+    --red-bg: #fff5f5;
+    --red-border: #fca5a5;
+    --teal: #0e7490;
+    --teal-bg: #ecfeff;
+    --text: #111827;
+    --muted: #6b7280;
+    --faint: #9ca3af;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2.5rem 1rem 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 800px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: flex-start; gap: 1.25rem;
+    margin-bottom: 2rem; padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border2);
+  }
+  .header-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--accent-light); display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .header-icon svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+  .header-tag {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .14em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 5px;
+  }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -.4px; margin-bottom: 3px; }
+  .header p  { font-size: 13px; color: var(--muted); }
+
+  /* ── Name block ── */
+  .name-block {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .name-block label { font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .name-block input {
+    flex: 1; min-width: 200px;
+    font-family: var(--sans); font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid var(--border2); border-radius: 7px;
+    background: var(--bg); color: var(--text);
+    outline: none; transition: border-color .2s;
+  }
+  .name-block input:focus { border-color: var(--accent); }
+  .name-block .turma-label { font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .name-block select {
+    font-family: var(--sans); font-size: 14px;
+    padding: 8px 12px; border: 1px solid var(--border2);
+    border-radius: 7px; background: var(--bg); color: var(--text);
+    outline: none; cursor: pointer; transition: border-color .2s;
+  }
+  .name-block select:focus { border-color: var(--accent); }
+
+  /* ── Progress ── */
+  .progress-wrap { margin-bottom: 2rem; }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .progress-label { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .progress-track { height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+
+  /* ── Question card ── */
+  .q-card {
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.75rem 1.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--bg);
+    transition: box-shadow .2s;
+    position: relative;
+  }
+  .q-card:focus-within { box-shadow: 0 0 0 3px rgba(26,86,219,.12); }
+
+  .q-meta {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;
+  }
+  .q-num {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+  }
+  .q-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 99px;
+    font-weight: 500;
+  }
+  .badge-new  { background: #f0fdf4; color: #057a55; border: 1px solid #6ee7b7; }
+  .badge-old  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
+
+  .q-text {
+    font-size: 15px; font-weight: 500; line-height: 1.65;
+    color: var(--text); margin-bottom: 1.25rem;
+  }
+
+  /* ── Options ── */
+  .options { display: flex; flex-direction: column; gap: 8px; }
+
+  .opt {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 14px; border: 1px solid var(--border2);
+    border-radius: 8px; cursor: pointer;
+    background: var(--bg); transition: background .14s, border-color .14s;
+    user-select: none;
+  }
+  .opt:hover:not(.locked) { background: var(--surface); border-color: rgba(26,86,219,.25); }
+  .opt.chosen  { border-color: var(--accent); background: var(--accent-light); }
+  .opt.correct { border-color: var(--green); background: var(--green-bg); }
+  .opt.wrong   { border-color: var(--red);   background: var(--red-bg); }
+
+  .opt-letter {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--faint); min-width: 18px; flex-shrink: 0; margin-top: 1px;
+    transition: color .14s;
+  }
+  .opt.chosen .opt-letter  { color: var(--accent); }
+  .opt.correct .opt-letter { color: var(--green); }
+  .opt.wrong .opt-letter   { color: var(--red); }
+
+  .opt-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+
+  /* ── Feedback ── */
+  .feedback {
+    display: none; margin-top: 1rem;
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; line-height: 1.6;
+    border-left: 3px solid transparent;
+    border-radius: 0 8px 8px 0;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok  { background: var(--green-bg); color: #065f46; border-color: var(--green); }
+  .feedback.err { background: var(--red-bg);   color: #7f1d1d; border-color: var(--red); }
+
+  /* ── Nav ── */
+  .nav {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-top: 1.75rem;
+  }
+  .btn {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    padding: 9px 20px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border2); background: var(--bg);
+    color: var(--text); transition: background .14s;
+  }
+  .btn:hover:not(:disabled) { background: var(--surface); }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) { background: #1648c0; }
+
+  /* ── Result panel ── */
+  .result-panel { text-align: center; padding: 2.5rem 1rem; }
+  .result-score {
+    font-family: var(--mono); font-size: 56px; font-weight: 600;
+    color: var(--accent); letter-spacing: -2px; line-height: 1;
+    margin-bottom: 6px;
+  }
+  .result-label { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; }
+  .result-bar-wrap { max-width: 320px; margin: 0 auto 1.5rem; }
+  .result-track { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .result-fill  { height: 100%; border-radius: 99px; transition: width 1s ease; }
+  .result-message {
+    font-size: 14px; color: var(--muted); line-height: 1.7;
+    max-width: 420px; margin: 0 auto 2rem;
+  }
+  .result-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; max-width: 360px; margin: 0 auto 2rem;
+  }
+  .result-dot {
+    aspect-ratio: 1; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+  }
+  .dot-ok  { background: var(--green-bg);  color: var(--green); border: 1px solid var(--green-border); }
+  .dot-err { background: var(--red-bg);    color: var(--red);   border: 1px solid var(--red-border); }
+
+  .send-status {
+    font-size: 12px; color: var(--muted); margin-top: .75rem;
+    font-family: var(--mono);
+  }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 3rem; padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
+  }
+  .footer-left { font-family: var(--mono); font-size: 10px; color: var(--faint); letter-spacing: .08em; }
+  .footer-right { font-size: 11px; color: var(--faint); }
+
+  @media (max-width: 600px) {
+    .q-card { padding: 1.25rem 1rem; }
+    .result-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3m0 0a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2m-12 0a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2m0 0h3M9 7V5m6 2V5M9 17v2m6-2v2"/></svg>
+    </div>
+    <div>
+      <div class="header-tag">IFSP · Câmpus Piracicaba &nbsp;/&nbsp; Conversão de Energia</div>
+      <h1>Introdução aos Transformadores</h1>
+      <p>Quiz de abertura — 5 questões &nbsp;·&nbsp; Responda antes de iniciar a aula</p>
+    </div>
+  </div>
+
+  <!-- Name + Turma -->
+  <div class="name-block">
+    <label for="nome">Nome completo</label>
+    <input type="text" id="nome" placeholder="Digite seu nome…" autocomplete="name"/>
+    <span class="turma-label">Turma</span>
+    <select id="turma">
+      <option value="">Selecione</option>
+      <option>2025-1</option>
+      <option>2025-2</option>
+      <option>2026-1</option>
+      <option>2026-2</option>
+    </select>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label" id="prog-label">Questão 1 de 5</span>
+      <span class="progress-label" id="prog-pct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Quiz area -->
+  <div id="quiz-area"></div>
+
+  <!-- Nav -->
+  <div class="nav" id="nav-wrap">
+    <button class="btn" id="btn-prev" onclick="prev()" disabled>← Anterior</button>
+    <button class="btn btn-primary" id="btn-action" onclick="confirmOrNext()">Confirmar</button>
+  </div>
+
+  <!-- Result (hidden initially) -->
+  <div class="result-panel" id="result-panel" style="display:none"></div>
+
+  <div class="footer">
+    <span class="footer-left">IFSP · CONVERSÃO DE ENERGIA · 2026</span>
+    <span class="footer-right">Quiz de abertura — Transformadores</span>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIGURAÇÃO — cole a URL do Apps Script aqui
+   ═══════════════════════════════════════════════ */
+const APPS_SCRIPT_URL = "COLE_AQUI_A_URL_DO_APPS_SCRIPT";
+
+/* ─── Questões ─── */
+const questions = [
+  {
+    badge: "old",
+    text: "Em um transformador ideal monofásico, o enrolamento primário possui N\u209a = 500 espiras e o secundário N\u209b = 100 espiras. Considerando que a tensão de alimentação no primário é V\u209a = 2200 V (rms), qual é o valor eficaz da tensão no secundário e como se classifica esse transformador?",
+    opts: [
+      "V\u209b = 440 V; trata-se de um transformador elevador de tensão, pois a razão a = N\u209a/N\u209b > 1.",
+      "V\u209b = 440 V; trata-se de um transformador abaixador de tensão, pois a razão a = N\u209a/N\u209b > 1.",
+      "V\u209b = 11000 V; trata-se de um transformador elevador de tensão, pois a razão a = N\u209b/N\u209a > 1.",
+      "V\u209b = 11000 V; trata-se de um transformador abaixador de tensão, pois a razão a = N\u209a/N\u209b < 1.",
+      "V\u209b = 2200 V; o transformador é de relação unitária pois as perdas no cobre equalizam a tensão em ambos os lados."
+    ],
+    answer: 1,
+    feedback: "Correto. A relação de transformação é a = N\u209a/N\u209b = 500/100 = 5. Logo V\u209b = V\u209a/a = 2200/5 = 440 V. Como a > 1, a tensão é reduzida no secundário, caracterizando um transformador abaixador."
+  },
+  {
+    badge: "old",
+    text: "Em um transformador real de núcleo ferromagnético (aço silício laminado), quais são as duas principais categorias de perdas associadas ao núcleo e quais características do material e da construção são adotadas para minimizá-las?",
+    opts: [
+      "Perdas por efeito Joule nos condutores e por correntes de Foucault; minimizadas aumentando a seção transversal dos fios e utilizando núcleo maciço de ferro.",
+      "Perdas por histerese e por correntes de Foucault (parasitas); minimizadas pela escolha de material com ciclo de histerese estreito e pela laminação do núcleo.",
+      "Perdas por histerese e por efeito skin; minimizadas utilizando condutores de cobre de alta pureza e operando o transformador em frequências acima de 1 kHz.",
+      "Perdas por correntes de Foucault e por relutância magnética; minimizadas aumentando a permeabilidade relativa do núcleo com ligas de manganês-zinco.",
+      "Perdas por histerese e por efeito Joule no núcleo; minimizadas operando abaixo da frequência de ressonância magnética e usando material com alta coercividade."
+    ],
+    answer: 1,
+    feedback: "Correto. As perdas no núcleo são: (1) histerese — reduzida por material com laço B-H estreito; (2) correntes de Foucault — reduzidas pela laminação, que aumenta a resistência ao caminho das correntes induzidas."
+  },
+  {
+    badge: "new",
+    text: "Um núcleo toroidal ferromagnético tem dois enrolamentos: o primário com N\u209a espiras conduzindo uma corrente alternada senoidal i\u209a(t), e o secundário com N\u209b espiras em aberto. Com base na Lei de Faraday e na natureza dos materiais ferromagnéticos, o que determina que uma tensão e\u209b seja induzida no secundário, mesmo sem qualquer contato elétrico entre os dois enrolamentos?",
+    opts: [
+      "A corrente i\u209a cria um campo elétrico que se propaga pelo núcleo e induz diretamente uma diferença de potencial nos terminais do secundário por condução iônica.",
+      "O núcleo ferromagnético amplifica a corrente primária por efeito de ressonância magnética, e essa corrente amplificada é captada mecanicamente pelo enrolamento secundário.",
+      "A corrente i\u209a gera um fluxo magnético variável no núcleo; por ser ferromagnético, o núcleo canaliza esse fluxo pelo secundário, e a variação d\u03c6/dt induz e\u209b = \u2212N\u209b · d\u03c6/dt pela Lei de Faraday.",
+      "O campo magnético variável gerado por i\u209a ioniza o material do núcleo, e os íons em movimento constituem uma corrente que percorre o enrolamento secundário por efeito de indução eletrostática.",
+      "A permeabilidade magnética do núcleo ferromagnético converte diretamente a variação de corrente primária em variação de tensão no secundário, sem necessidade de variação de fluxo."
+    ],
+    answer: 2,
+    feedback: "Correto. O mecanismo é eletromagnético: i\u209a(t) senoidal gera fluxo \u03c6(t) variável; o núcleo ferromagnético (alta permeabilidade) canaliza esse fluxo de forma que praticamente todo ele concatene o secundário. A Lei de Faraday — e\u209b = \u2212N\u209b · d\u03c6/dt — estabelece que qualquer variação temporal de fluxo concatenado induz uma fem, independentemente de contato elétrico."
+  },
+  {
+    badge: "new",
+    text: "Um secundário em carga (com resistência conectada) de um transformador fornece corrente i\u209b ao circuito externo. Pela Lei de Lenz, a corrente i\u209b produz um fluxo magnético que tende a se opor ao fluxo original gerado pelo primário. Como o transformador ideal responde a essa oposição para manter o equilíbrio energético, e qual grandeza física é preservada nesse processo?",
+    opts: [
+      "O núcleo satura parcialmente para limitar a variação de fluxo, e o transformador preserva a tensão no secundário constante independentemente da corrente de carga.",
+      "A corrente primária i\u209a aumenta automaticamente para repor o fluxo que i\u209b tende a reduzir, de forma que o fluxo no núcleo se mantém e a potência entregue ao primário iguala a potência absorvida pela carga.",
+      "A tensão primária V\u209a se eleva por ação da fonte para compensar a queda de fluxo, e o transformador preserva a corrente no secundário constante para qualquer valor de carga.",
+      "A Lei de Lenz faz com que i\u209b circule em sentido oposto ao esperado, reduzindo a potência disponível no secundário e forçando o transformador a operar abaixo da potência nominal.",
+      "O fluxo de dispersão aumenta para compensar a oposição de i\u209b, e o transformador preserva a relação de espiras N\u209a/N\u209b ajustando dinamicamente o número efetivo de espiras ativas."
+    ],
+    answer: 1,
+    feedback: "Correto. É o mecanismo central do transformador em carga: i\u209b cria um fluxo de oposição (Lenz); para manter o fluxo mútuo \u03c6M — exigido pela tensão primária via Faraday —, a fonte aumenta i\u209a até que N\u209a·i\u209a = N\u209b·i\u209b (no ideal). O equilíbrio é energético: P\u209a = V\u209a·i\u209a = V\u209b·i\u209b = P\u209b."
+  },
+  {
+    badge: "old",
+    text: "Em um transformador ideal com relação de transformação a = N\u209a/N\u209b, uma impedância de carga Z_carga é conectada ao secundário. Qual é a expressão da impedância referida ao primário Z'_carga e qual é a relevância prática desse conceito em sistemas de comunicação?",
+    opts: [
+      "Z'_carga = Z_carga / a²; o transformador reduz a impedância vista pelo gerador, permitindo sempre maior corrente de saída independentemente da carga conectada.",
+      "Z'_carga = a · Z_carga; a referência ao primário é usada exclusivamente para calcular correntes de curto-circuito em sistemas de proteção de redes elétricas.",
+      "Z'_carga = a² · Z_carga; o transformador permite ajustar a impedância vista pela fonte ao valor que garante máxima transferência de potência ao circuito externo.",
+      "Z'_carga = Z_carga / a; a referência ao primário é equivalente a substituir o transformador por uma resistência de valor Z_carga multiplicada pelo número de espiras do secundário.",
+      "Z'_carga = a² · Z_carga apenas quando Z_carga é puramente resistiva; para cargas reativas a referência requer inclusão do ângulo de fase da relação de transformação."
+    ],
+    answer: 2,
+    feedback: "Correto. Z'_carga = a² · Z_carga. Escolhendo adequadamente a relação de espiras, o transformador transforma a impedância da carga para o valor que maximiza a transferência de potência da fonte (condição Z_fonte = Z'_carga*)."
+  }
+];
+
+/* ─── Estado ─── */
+let current = 0;
+let chosen = new Array(questions.length).fill(null);
+let confirmed = new Array(questions.length).fill(false);
+let score = 0;
+const letters = ["A","B","C","D","E"];
+
+/* ─── Render ─── */
+function renderQuestion() {
+  const q = questions[current];
+  const isConfirmed = confirmed[current];
+  const sel = chosen[current];
+
+  let optsHtml = q.opts.map((o, i) => {
+    let cls = "opt";
+    if (isConfirmed) {
+      cls += " locked";
+      if (i === q.answer) cls += " correct";
+      else if (i === sel && sel !== q.answer) cls += " wrong";
+    } else if (sel === i) cls += " chosen";
+    return `<div class="${cls}" onclick="pick(${i})">
+      <span class="opt-letter">${letters[i]}</span>
+      <span class="opt-text">${o}</span>
+    </div>`;
+  }).join("");
+
+  let feedbackHtml = "";
+  if (isConfirmed) {
+    const ok = sel === q.answer;
+    feedbackHtml = `<div class="feedback ${ok?"ok":"err"} show">
+      ${ok ? "✓ " : "✗ "}${q.feedback}
+    </div>`;
+  }
+
+  document.getElementById("quiz-area").innerHTML = `
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="q-num">QUESTÃO ${current+1} / ${questions.length}</span>
+        <span class="q-badge badge-${q.badge}">${q.badge==="new"?"★ nova":"mantida"}</span>
+      </div>
+      <div class="q-text">${q.text}</div>
+      <div class="options">${optsHtml}</div>
+      ${feedbackHtml}
+    </div>`;
+
+  updateProgress();
+  updateNav();
+}
+
+function updateProgress() {
+  const done = confirmed.filter(Boolean).length;
+  const pct = Math.round((current+1) / questions.length * 100);
+  document.getElementById("prog-label").textContent = `Questão ${current+1} de ${questions.length}`;
+  document.getElementById("prog-pct").textContent = pct + "%";
+  document.getElementById("prog-fill").style.width = pct + "%";
+}
+
+function updateNav() {
+  document.getElementById("btn-prev").disabled = current === 0;
+  const btn = document.getElementById("btn-action");
+  if (confirmed[current]) {
+    btn.textContent = current < questions.length - 1 ? "Próxima →" : "Ver resultado";
+  } else {
+    btn.textContent = "Confirmar";
+  }
+}
+
+function pick(i) {
+  if (confirmed[current]) return;
+  chosen[current] = i;
+  renderQuestion();
+}
+
+function confirmOrNext() {
+  if (!confirmed[current]) {
+    if (chosen[current] === null) { alert("Selecione uma alternativa antes de confirmar."); return; }
+    confirmed[current] = true;
+    if (chosen[current] === questions[current].answer) score++;
+    renderQuestion();
+  } else {
+    if (current < questions.length - 1) { current++; renderQuestion(); }
+    else showResult();
+  }
+}
+
+function prev() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+/* ─── Result ─── */
+function showResult() {
+  const nome  = document.getElementById("nome").value.trim() || "Anônimo";
+  const turma = document.getElementById("turma").value || "—";
+
+  document.getElementById("nav-wrap").style.display  = "none";
+  document.getElementById("quiz-area").style.display = "none";
+  document.getElementById("progress-wrap") && (document.getElementById("progress-wrap").style.display = "none");
+
+  const pct = Math.round(score / questions.length * 100);
+  let barColor = "#c81e1e";
+  if (pct >= 80) barColor = "#057a55";
+  else if (pct >= 60) barColor = "#b45309";
+
+  let msg = "";
+  if (pct === 100) msg = "Excelente! Você domina os pré-requisitos desta aula.";
+  else if (pct >= 60) msg = "Bom resultado. Revise os conceitos em que errou antes de prosseguir.";
+  else msg = "Revise Faraday, Lenz e materiais magnéticos com atenção — eles são a base desta aula.";
+
+  const dotsHtml = questions.map((q, i) => {
+    const ok = chosen[i] === q.answer;
+    return `<div class="result-dot ${ok?"dot-ok":"dot-err"}">${i+1}</div>`;
+  }).join("");
+
+  document.getElementById("result-panel").style.display = "block";
+  document.getElementById("result-panel").innerHTML = `
+    <div class="result-score">${score}/${questions.length}</div>
+    <div class="result-label">${nome} &nbsp;·&nbsp; Turma ${turma}</div>
+    <div class="result-bar-wrap">
+      <div class="result-track">
+        <div class="result-fill" id="res-fill" style="width:0%; background:${barColor}"></div>
+      </div>
+    </div>
+    <div class="result-grid">${dotsHtml}</div>
+    <div class="result-message">${msg}</div>
+    <button class="btn" onclick="restart()" style="margin-right:8px">Refazer quiz</button>
+    <div class="send-status" id="send-status">Enviando resultado…</div>
+  `;
+
+  setTimeout(() => {
+    document.getElementById("res-fill").style.width = pct + "%";
+  }, 100);
+
+  sendResult(nome, turma);
+}
+
+/* ─── Envio ao Google Sheets ─── */
+function sendResult(nome, turma) {
+  const respostas = questions.map((q, i) => {
+    const idx = chosen[i];
+    return {
+      questao: i + 1,
+      alternativa_escolhida: idx !== null ? letters[idx] : "—",
+      alternativa_correta: letters[q.answer],
+      acerto: idx === q.answer ? "Sim" : "Não"
+    };
+  });
+
+  const payload = {
+    quiz: "Transformadores",
+    nome, turma,
+    acertos: score,
+    total: questions.length,
+    percentual: Math.round(score / questions.length * 100),
+    timestamp: new Date().toLocaleString("pt-BR"),
+    respostas
+  };
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    const el = document.getElementById("send-status");
+    if (el) el.textContent = "✓ Resultado registrado na planilha.";
+  })
+  .catch(() => {
+    const el = document.getElementById("send-status");
+    if (el) el.textContent = "⚠ Não foi possível enviar. Verifique a URL do Apps Script.";
+  });
+}
+
+function restart() {
+  current = 0;
+  chosen = new Array(questions.length).fill(null);
+  confirmed = new Array(questions.length).fill(false);
+  score = 0;
+  document.getElementById("result-panel").style.display = "none";
+  document.getElementById("quiz-area").style.display    = "block";
+  document.getElementById("nav-wrap").style.display     = "flex";
+  renderQuestion();
+}
+
+/* ─── Init ─── */
+renderQuestion();
+</script>
+</body>
+</html>
