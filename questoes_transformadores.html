@@ -175,7 +175,7 @@
 ═══════════════════════════════════════════════ -->
 <div class="tela-id" id="telaId">
   <div class="id-card">
-    <div class="id-kicker">Conversão de Energia </div>
+    <div class="id-kicker">Conversão de Energia · IFSP Piracicaba</div>
     <h1>Questões sobre<br>Transformadores</h1>
     <p>Preencha seu nome antes de iniciar. Suas respostas serão registradas ao final.</p>
     <label class="id-label" for="inputNome">Nome completo</label>
@@ -325,7 +325,6 @@ var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhniLIpuEGhUWk6vwHdjr
 //  ESTADO
 // ══════════════════════════════════════════════
 var nomeAluno  = "";
-var turmaAluno = "";
 var estado     = { respondidas: 0, certas: 0, erradas: 0 };
 var respostas  = [];   // [{questao, respondeu}]
 var TOTAL      = 4;
@@ -336,16 +335,14 @@ var GABARITOS  = { 1:"B", 2:"C", 3:"B", 4:"C" };
 // ══════════════════════════════════════════════
 function iniciar() {
   var nome  = document.getElementById("inputNome").value.trim();
-  var turma = document.getElementById("inputTurma").value.trim();
-  if (!nome || !turma) {
+  if (!nome) {
     document.getElementById("idErro").style.display = "block";
     return;
   }
   nomeAluno  = nome;
-  turmaAluno = turma;
   document.getElementById("telaId").style.display   = "none";
   document.getElementById("telaQuiz").style.display = "block";
-  document.getElementById("alunoNome").textContent  = nome + " · " + turma;
+  document.getElementById("alunoNome").textContent  = nome;
 }
 
 // ══════════════════════════════════════════════
@@ -432,7 +429,6 @@ function enviarRespostas() {
 
   var payload = {
     nome:      nomeAluno,
-    turma:     turmaAluno,
     respostas: respostas
   };
 
@@ -457,11 +453,8 @@ function enviarRespostas() {
 }
 
 // Enter na tela de identificação
-document.getElementById("inputTurma").addEventListener("keydown", function(e) {
-  if (e.key === "Enter") iniciar();
-});
 document.getElementById("inputNome").addEventListener("keydown", function(e) {
-  if (e.key === "Enter") document.getElementById("inputTurma").focus();
+  if (e.key === "Enter") iniciar();
 });
 </script>
 </body>
