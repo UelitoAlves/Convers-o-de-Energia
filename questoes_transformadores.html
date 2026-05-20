@@ -157,6 +157,10 @@
   }
   .q-alternativas li:hover { background: var(--bg); border-color: var(--border-strong); }
   .q-alternativas li .letra { font-weight: 500; color: var(--ink-3); min-width: 16px; flex-shrink: 0; margin-top: 1px; }
+  .q-alternativas li.selecionada {
+    background: #E8EFF8; border-color: var(--accent); color: var(--accent); cursor: default;
+  }
+  .q-alternativas li.selecionada .letra { color: var(--accent); }
   .q-alternativas li.correta { background: var(--ok-light); border-color: var(--ok); color: var(--ok); cursor: default; }
   .q-alternativas li.correta .letra { color: var(--ok); }
   .q-alternativas li.errada { background: var(--err-light); border-color: var(--err); color: var(--err); cursor: default; }
@@ -233,7 +237,7 @@
       As respostas corretas estão nas tabelas e especificações do catálogo —
       não utilize outras fontes.
     </div>
-    <button class="btn-ok" onclick="irParaQuiz()">Iniciar questões →</button>
+    <button class="btn-ok" onclick="irParaQuiz()">Entendido, iniciar questões →</button>
   </div>
 </div>
 
@@ -251,11 +255,7 @@
 <div class="score-bar">
   <div class="score-item"><span class="val" id="s-respondidas">0</span><span class="lbl">Respondidas</span></div>
   <div class="score-divider"></div>
-  <div class="score-item"><span class="val" id="s-certas">0</span><span class="lbl">Corretas</span></div>
-  <div class="score-divider"></div>
-  <div class="score-item"><span class="val" id="s-erradas">0</span><span class="lbl">Incorretas</span></div>
-  <div class="score-divider"></div>
-  <div class="score-item"><span class="val" id="s-aproveitamento">—</span><span class="lbl">Aproveitamento</span></div>
+  <div class="score-item"><span class="val" id="s-aproveitamento">4 restantes</span><span class="lbl">Faltam</span></div>
 </div>
 
 <div class="container">
@@ -403,25 +403,11 @@ function irParaQuiz() {
 }
 
 // ══════════════════════════════════════════════
-//  QUIZ
+//  QUIZ — registra resposta sem revelar gabarito
 // ══════════════════════════════════════════════
-function atualizarPlacar() {
-  document.getElementById("s-respondidas").textContent = estado.respondidas;
-  document.getElementById("s-certas").textContent      = estado.certas;
-  document.getElementById("s-erradas").textContent     = estado.erradas;
-  var ap = estado.respondidas > 0
-    ? Math.round((estado.certas / estado.respondidas) * 100) + "%"
-    : "—";
-  document.getElementById("s-aproveitamento").textContent = ap;
-
-  if (estado.respondidas === TOTAL) mostrarEnvio();
-}
-
 document.querySelectorAll(".questao").forEach(function(q) {
-  var numQ     = parseInt(q.id.replace("q",""));
-  var correta  = q.querySelector(".q-alternativas").dataset.resposta;
-  var gabarito = document.getElementById("g" + numQ);
-  var feita    = false;
+  var numQ    = parseInt(q.id.replace("q",""));
+  var feita   = false;
 
   q.querySelectorAll("li").forEach(function(li) {
     li.addEventListener("click", function() {
@@ -432,38 +418,71 @@ document.querySelectorAll(".questao").forEach(function(q) {
       var alt = li.dataset.alt;
       respostas.push({ questao: numQ, respondeu: alt });
 
-      if (alt === correta) {
-        li.classList.add("correta");
-        estado.certas++;
-      } else {
-        li.classList.add("errada");
-        estado.erradas++;
-        q.querySelectorAll("li[data-alt='" + correta + "']").forEach(function(c) {
-          c.classList.add("correta");
-        });
-      }
+      // destaca só que foi selecionada — sem cor de certo/errado
+      li.classList.add("selecionada");
       q.querySelectorAll("li").forEach(function(x) { x.classList.add("disabled"); });
-      gabarito.classList.add("visible");
-      atualizarPlacar();
+
+      // atualiza contador
+      document.getElementById("s-respondidas").textContent = estado.respondidas;
+      var faltam = TOTAL - estado.respondidas;
+      document.getElementById("s-aproveitamento").textContent =
+        faltam > 0 ? faltam + " restante" + (faltam > 1 ? "s" : "") : "—";
+
+      if (estado.respondidas === TOTAL) mostrarEnvio();
     });
   });
 });
 
 // ══════════════════════════════════════════════
-//  TELA DE ENVIO
+//  TELA DE ENVIO — aparece ao responder tudo
 // ══════════════════════════════════════════════
 function mostrarEnvio() {
-  var box      = document.getElementById("envioBox");
-  var nota     = Math.round((estado.certas / TOTAL) * 100);
-  var titulo   = nota >= 75 ? "Excelente desempenho!" : nota >= 50 ? "Bom esforço!" : "Continue estudando!";
-  var texto    = estado.certas + " de " + TOTAL + " questões corretas — aproveitamento de " + nota + "%. " +
-                 "Clique em Enviar para registrar suas respostas.";
-
-  document.getElementById("envioTitulo").textContent = titulo;
-  document.getElementById("envioNota").textContent   = nota + "%";
-  document.getElementById("envioTexto").textContent  = texto;
+  var box = document.getElementById("envioBox");
+  document.getElementById("envioTitulo").textContent = "Você respondeu todas as questões!";
+  document.getElementById("envioNota").textContent   = "";
+  document.getElementById("envioTexto").textContent  =
+    "Clique em Enviar para registrar suas respostas. O gabarito será revelado após o envio.";
   box.classList.add("visible");
   box.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ══════════════════════════════════════════════
+//  REVELA GABARITO — chamado só após envio ok
+// ══════════════════════════════════════════════
+function revelarGabarito() {
+  var GABARITOS_MAP = { 1:"B", 2:"C", 3:"B", 4:"C" };
+  var certas = 0;
+
+  respostas.forEach(function(r) {
+    var q        = document.getElementById("q" + r.questao);
+    var correta  = GABARITOS_MAP[r.questao];
+    var gabarito = document.getElementById("g" + r.questao);
+
+    q.querySelectorAll("li").forEach(function(li) {
+      li.classList.remove("selecionada");
+      if (li.dataset.alt === r.respondeu) {
+        li.classList.add(r.respondeu === correta ? "correta" : "errada");
+      }
+      if (li.dataset.alt === correta && r.respondeu !== correta) {
+        li.classList.add("correta");
+      }
+    });
+
+    gabarito.classList.add("visible");
+    if (r.respondeu === correta) certas++;
+  });
+
+  var nota   = Math.round((certas / TOTAL) * 100);
+  var titulo = nota >= 75 ? "Excelente desempenho!" : nota >= 50 ? "Bom esforço!" : "Continue estudando!";
+
+  document.getElementById("s-respondidas").textContent    = TOTAL;
+  document.getElementById("s-aproveitamento").textContent = nota + "%";
+  document.getElementById("envioTitulo").textContent      = titulo;
+  document.getElementById("envioNota").textContent        = nota + "%";
+  document.getElementById("envioTexto").textContent       =
+    certas + " de " + TOTAL + " questões corretas. Os gabaritos comentados estão visíveis abaixo de cada questão.";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // ══════════════════════════════════════════════
@@ -474,20 +493,18 @@ function enviarRespostas() {
   var status = document.getElementById("envioStatus");
 
   if (!SCRIPT_URL || SCRIPT_URL === "COLE_AQUI_A_URL_DO_APPS_SCRIPT") {
-    status.className = "envio-status erro";
+    status.className   = "envio-status erro";
     status.textContent = "⚠ URL do Apps Script não configurada. Informe o professor.";
+    revelarGabarito();
     return;
   }
 
-  btn.disabled    = true;
-  btn.textContent = "Enviando…";
+  btn.disabled       = true;
+  btn.textContent    = "Enviando…";
   status.className   = "envio-status";
   status.textContent = "Aguarde…";
 
-  var payload = {
-    nome:      nomeAluno,
-    respostas: respostas
-  };
+  var payload = { nome: nomeAluno, respostas: respostas };
 
   fetch(SCRIPT_URL, {
     method:  "POST",
@@ -498,7 +515,8 @@ function enviarRespostas() {
   .then(function() {
     btn.textContent    = "✓ Enviado";
     status.className   = "envio-status ok";
-    status.textContent = "Respostas registradas com sucesso! Você pode fechar esta página.";
+    status.textContent = "Respostas registradas com sucesso!";
+    revelarGabarito();
   })
   .catch(function(err) {
     btn.disabled       = false;
@@ -513,6 +531,7 @@ function enviarRespostas() {
 document.getElementById("inputNome").addEventListener("keydown", function(e) {
   if (e.key === "Enter") iniciar();
 });
+
 </script>
 </body>
 </html>
