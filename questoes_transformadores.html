@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questões — Transformadores · Conversão de Energia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F2EC;
+    --surface: #FFFDF8;
+    --ink: #1A1814;
+    --ink-2: #4A4640;
+    --ink-3: #8A857E;
+    --accent: #1B4F8A;
+    --accent-light: #E8EFF8;
+    --gold: #B07D2A;
+    --gold-light: #FBF4E6;
+    --ok: #2A6B3C;
+    --ok-light: #EAF4EE;
+    --err: #8A1B1B;
+    --err-light: #F8EAEA;
+    --border: rgba(26,24,20,0.12);
+    --border-strong: rgba(26,24,20,0.22);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .page-header {
+    background: var(--ink);
+    color: #FFFDF8;
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 500px; height: 200px;
+    background: radial-gradient(ellipse, rgba(27,79,138,0.35) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .page-header .kicker {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: #FFFDF8;
+  }
+  .page-header p {
+    font-size: 14px;
+    color: rgba(255,253,248,0.6);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .score-bar {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .score-item { text-align: center; }
+  .score-item .val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--ink);
+    display: block;
+    line-height: 1;
+  }
+  .score-item .lbl {
+    font-size: 11px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+  .score-divider { width: 1px; height: 36px; background: var(--border); }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .questao {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .questao:hover { box-shadow: 0 4px 24px rgba(26,24,20,0.07); }
+
+  .q-head {
+    padding: 1.25rem 1.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .q-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+  .q-tag {
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 99px;
+    letter-spacing: 0.03em;
+  }
+  .q-fonte {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-left: auto;
+  }
+
+  .q-contexto {
+    margin: 1rem 1.5rem 0;
+    padding: 12px 14px;
+    background: var(--gold-light);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .q-contexto strong { color: var(--ink); }
+
+  .q-enunciado {
+    padding: 1rem 1.5rem 0.75rem;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .q-alternativas {
+    list-style: none;
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .q-alternativas li {
+    padding: 11px 14px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .q-alternativas li:hover { background: var(--bg); border-color: var(--border-strong); }
+  .q-alternativas li .letra {
+    font-weight: 500;
+    color: var(--ink-3);
+    min-width: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .q-alternativas li.correta {
+    background: var(--ok-light);
+    border-color: var(--ok);
+    color: var(--ok);
+    cursor: default;
+  }
+  .q-alternativas li.correta .letra { color: var(--ok); }
+  .q-alternativas li.errada {
+    background: var(--err-light);
+    border-color: var(--err);
+    color: var(--err);
+    cursor: default;
+  }
+  .q-alternativas li.errada .letra { color: var(--err); }
+  .q-alternativas li.disabled { cursor: default; pointer-events: none; }
+
+  .q-gabarito {
+    display: none;
+    margin: 0 1.5rem 1.5rem;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .q-gabarito.visible { display: block; }
+  .q-gabarito strong { color: var(--ink); }
+
+  .resultado-final {
+    display: none;
+    background: var(--ink);
+    color: #FFFDF8;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  .resultado-final.visible { display: block; }
+  .resultado-final h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+  .resultado-final p { font-size: 14px; color: rgba(255,253,248,0.65); line-height: 1.6; }
+
+  .btn-reset {
+    margin-top: 1.5rem;
+    display: inline-block;
+    padding: 10px 28px;
+    background: transparent;
+    border: 1px solid rgba(255,253,248,0.35);
+    border-radius: 99px;
+    color: #FFFDF8;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-reset:hover { background: rgba(255,253,248,0.1); }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 12px;
+    color: var(--ink-3);
+    border-top: 0.5px solid var(--border);
+  }
+
+  @media (max-width: 520px) {
+    .page-header { padding: 2rem 1rem 1.5rem; }
+    .container { padding: 1.5rem 1rem 3rem; }
+    .q-head, .q-contexto, .q-enunciado, .q-alternativas, .q-gabarito { padding-left: 1rem; padding-right: 1rem; }
+    .score-bar { gap: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="kicker">Conversão de Energia · IFSP Piracicaba</div>
+  <h1>Transformadores<br>Catálogo Tamura Indusul</h1>
+  <p>Quatro questões com contexto de projeto de engenharia. Clique em uma alternativa para verificar.</p>
+</header>
+
+<div class="score-bar">
+  <div class="score-item">
+    <span class="val" id="s-respondidas">0</span>
+    <span class="lbl">Respondidas</span>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-item">
+    <span class="val" id="s-certas">0</span>
+    <span class="lbl">Corretas</span>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-item">
+    <span class="val" id="s-erradas">0</span>
+    <span class="lbl">Incorretas</span>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-item">
+    <span class="val" id="s-aproveitamento">—</span>
+    <span class="lbl">Aproveitamento</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Q1 -->
+  <div class="questao" id="q1">
+    <div class="q-head">
+      <span class="q-num">Questão 1</span>
+      <span class="q-tag">Baixa Tensão · Trifásico · STF</span>
+      <span class="q-fonte">Tamura Indusul p. 04</span>
+    </div>
+    <div class="q-contexto">
+      Um engenheiro está projetando a subestação de um galpão industrial que receberá alimentação trifásica da concessionária e precisa fornecer energia a máquinas que operam em regime contínuo. Ao dimensionar o transformador, ele busca um equipamento com impedância de curto-circuito adequada para limitar correntes de falta. Consultando o catálogo Tamura Indusul, ele avalia os transformadores da série <strong>STF</strong>.
+    </div>
+    <div class="q-enunciado">
+      Qual é a impedância percentual (Z%) padronizada dos transformadores trifásicos STF na faixa de 20 kVA a 300 kVA, e qual grandeza essa especificação impacta diretamente no projeto de proteção do sistema elétrico?
+    </div>
+    <ul class="q-alternativas" data-resposta="b">
+      <li data-alt="a"><span class="letra">a)</span> Z = 2,5%, impactando a tensão nominal de saída do transformador e o fator de potência da carga conectada ao barramento.</li>
+      <li data-alt="b"><span class="letra">b)</span> Z = 4%, impactando a corrente de curto-circuito simétrica disponível no barramento de baixa tensão, valor fundamental para especificação dos dispositivos de proteção.</li>
+      <li data-alt="c"><span class="letra">c)</span> Z = 6%, impactando apenas as perdas no ferro do núcleo magnético e o rendimento em plena carga do transformador instalado.</li>
+      <li data-alt="d"><span class="letra">d)</span> Z = 10%, impactando exclusivamente o rendimento em regime de carga parcial e a elevação de temperatura dos enrolamentos em operação contínua.</li>
+    </ul>
+    <div class="q-gabarito" id="g1">
+      <strong>Gabarito: b)</strong> — A tabela STF (Tamura Indusul, p. 04) indica Z = 4% para potências de 20 kVA a 300 kVA. A impedância percentual determina diretamente a corrente de curto-circuito simétrica (Icc) disponível no barramento — valor essencial para o dimensionamento de fusíveis, disjuntores e chaves seccionadoras em cascata.
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="questao" id="q2">
+    <div class="q-head">
+      <span class="q-num">Questão 2</span>
+      <span class="q-tag">Partida de Motores · ATPT</span>
+      <span class="q-fonte">Tamura Indusul p. 06</span>
+    </div>
+    <div class="q-contexto">
+      Uma empresa de beneficiamento de grãos precisa instalar um motor trifásico de 50 CV em 380 V. O engenheiro sabe que a corrente de partida direta pode atingir de 5 a 7 vezes a corrente nominal, o que causaria queda de tensão severa na rede. Ele opta por um autotransformador de partida (chave compensadora) com <strong>tap de 65% ou 80%</strong>, conforme disponível no catálogo Tamura Indusul, e precisa avaliar o efeito de cada tap sobre a corrente absorvida da rede.
+    </div>
+    <div class="q-enunciado">
+      Qual é o efeito técnico de selecionar o tap de 65% em vez do tap de 80% no autotransformador de partida trifásico, considerando a relação entre tensão aplicada ao motor e corrente absorvida da rede durante a partida?
+    </div>
+    <ul class="q-alternativas" data-resposta="c">
+      <li data-alt="a"><span class="letra">a)</span> O tap de 65% eleva a tensão no motor para 65% acima do nominal, aumentando o torque de partida e, consequentemente, a corrente absorvida pela rede em relação ao tap de 80%.</li>
+      <li data-alt="b"><span class="letra">b)</span> O tap de 65% e o tap de 80% produzem a mesma corrente absorvida da rede, diferindo apenas no tempo de aceleração do motor até atingir a velocidade nominal de operação.</li>
+      <li data-alt="c"><span class="letra">c)</span> O tap de 65% aplica menor tensão ao motor, reduzindo mais intensamente a corrente de rede — proporcional ao quadrado da relação de transformação — porém também reduz o torque disponível para vencer a carga acoplada.</li>
+      <li data-alt="d"><span class="letra">d)</span> O tap de 65% reduz a frequência de alimentação do motor para 65% do valor nominal, diminuindo a corrente de partida sem alterar o torque produzido pelo enrolamento do estator.</li>
+    </ul>
+    <div class="q-gabarito" id="g2">
+      <strong>Gabarito: c)</strong> — O catálogo ATPT Indusul (p. 06) oferece tap's de 65% e 80%. Em um autotransformador de partida, a corrente absorvida da rede é reduzida pelo quadrado da relação de transformação: com tap 65%, a corrente de rede cai para ~42% da corrente de partida direta; com tap 80%, para ~64%. O trade-off é que o torque também é reduzido na mesma proporção — o engenheiro deve verificar se o torque residual é suficiente para vencer a carga acoplada ao eixo.
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="questao" id="q3">
+    <div class="q-head">
+      <span class="q-num">Questão 3</span>
+      <span class="q-tag">Monofásico · Contatores · Potência Instantânea</span>
+      <span class="q-fonte">Tamura Indusul p. 03</span>
+    </div>
+    <div class="q-contexto">
+      Um engenheiro está dimensionando o transformador de comando de um painel de controle industrial que alimenta contatores e relés. Ele sabe que dispositivos indutivos absorvem, no momento da energização, uma potência instantânea muito superior à potência consumida em regime permanente — o que pode causar queda de tensão excessiva e sobreaquecimento se o transformador for subdimensionado. Para orientar o dimensionamento correto, o catálogo Tamura Indusul apresenta <strong>especificações e um gráfico Cos φ × Potência Instantânea</strong> específico para essa situação.
+    </div>
+    <div class="q-enunciado">
+      De acordo com o catálogo Tamura Indusul, quais são as duas condições mínimas que a potência nominal do transformador de comando monofásico deve satisfazer ao alimentar contatores e outros dispositivos indutivos de controle?
+    </div>
+    <ul class="q-alternativas" data-resposta="b">
+      <li data-alt="a"><span class="letra">a)</span> A potência nominal deve ser igual à soma das perdas no ferro de todos os contatores ligados, e a potência instantânea deve ser igual à corrente de magnetização multiplicada pela tensão nominal do transformador.</li>
+      <li data-alt="b"><span class="letra">b)</span> A potência nominal deve ser igual ou superior à potência máxima contínua requerida pelo circuito (S1), e a potência instantânea máxima deve ser igual ou superior à potência de pico de partida (S6) do circuito.</li>
+      <li data-alt="c"><span class="letra">c)</span> A potência nominal deve ser igual à potência reativa total dos contatores em regime permanente, e a potência instantânea deve ser limitada ao dobro da potência nominal para evitar queda de tensão excessiva nos terminais.</li>
+      <li data-alt="d"><span class="letra">d)</span> A potência nominal deve ser calculada pelo fator de potência médio dos contatores em S6, e a potência instantânea deve ser obtida somando-se as perdas totais do circuito de controle em regime de partida simultânea.</li>
+    </ul>
+    <div class="q-gabarito" id="g3">
+      <strong>Gabarito: b)</strong> — O catálogo Tamura Indusul (p. 03) estabelece duas condições mínimas: (a) a potência nominal do transformador em VA deve ser igual ou superior à potência máxima contínua requerida pelo circuito — S1 dos contatores; (b) a potência instantânea máxima deve ser igual ou superior à potência de pico de partida — S6 do circuito. O gráfico Cos φ × Potência Instantânea permite determinar a potência de pico admissível em função do fator de potência da carga no momento da energização.
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="questao" id="q4">
+    <div class="q-head">
+      <span class="q-num">Questão 4</span>
+      <span class="q-tag">Autotransformador Trifásico · SATF · Dimensionamento</span>
+      <span class="q-fonte">Tamura Indusul p. 05</span>
+    </div>
+    <div class="q-contexto">
+      Uma indústria têxtil precisa adaptar a tensão de alimentação de um setor de máquinas que opera em 380/220 V para receber energia de uma rede interna disponível em 440/220 V. O engenheiro opta por um <strong>autotransformador trifásico SATF</strong> da Tamura Indusul, pois a isolação galvânica não é exigida nesse ponto da instalação. A demanda estimada do setor é de 30 kVA. Para validar o projeto civil da base de apoio e o sistema de movimentação, ele precisa consultar as dimensões e a massa do equipamento no catálogo.
+    </div>
+    <div class="q-enunciado">
+      Consultando a tabela de autotransformadores trifásicos SATF do catálogo Tamura Indusul, para a potência de 30 kVA (440/220 V) em grau de proteção IP-00, quais são os valores aproximados de impedância (Z%), massa e dimensão máxima A do equipamento?
+    </div>
+    <ul class="q-alternativas" data-resposta="c">
+      <li data-alt="a"><span class="letra">a)</span> Z = 4,0%, massa ≈ 45 kg e dimensão A máx. = 300 mm, indicando equipamento compacto adequado para instalação em painéis de controle de baixa profundidade.</li>
+      <li data-alt="b"><span class="letra">b)</span> Z = 4,0%, massa ≈ 133 kg e dimensão A máx. = 575 mm, valores que correspondem ao transformador trifásico de isolação STF de mesma potência nominal instalado no mesmo ambiente.</li>
+      <li data-alt="c"><span class="letra">c)</span> Z = 2,0%, massa ≈ 90 kg e dimensão A máx. = 420 mm, refletindo o menor volume construtivo do autotransformador em relação ao transformador de isolação de mesma potência nominal.</li>
+      <li data-alt="d"><span class="letra">d)</span> Z = 2,5%, massa ≈ 25 kg e dimensão A máx. = 360 mm, valores referentes ao autotransformador trifásico SATP de mesma potência na tensão 380/220 V com grau de proteção IP-23.</li>
+    </ul>
+    <div class="q-gabarito" id="g4">
+      <strong>Gabarito: c)</strong> — A tabela SATF do catálogo Tamura Indusul (p. 05) indica para 30 kVA (440/220 V): Z = 2,0%, massa ≈ 90 kg e dimensão A máx. = 420 mm (IP-00). Comparando com o STF de 30 kVA (Z = 4%, massa ≈ 133 kg, A = 575 mm), percebe-se que o autotransformador é mais compacto e leve para a mesma potência — vantagem decorrente da ausência de isolação galvânica entre os enrolamentos primário e secundário.
+    </div>
+  </div>
+
+  <div class="resultado-final" id="resultado">
+    <h2 id="res-titulo">Atividade concluída!</h2>
+    <p id="res-texto"></p>
+    <button class="btn-reset" onclick="resetar()">Tentar novamente</button>
+  </div>
+
+</div>
+
+<footer>
+  Disciplina de Conversão de Energia · IFSP Câmpus Piracicaba · Baseado no Catálogo Tamura Indusul (Transformadores de Baixa Tensão)
+</footer>
+
+<script>
+  var estado = { respondidas: 0, certas: 0, erradas: 0 };
+  var total = 4;
+
+  function atualizar() {
+    document.getElementById('s-respondidas').textContent = estado.respondidas;
+    document.getElementById('s-certas').textContent = estado.certas;
+    document.getElementById('s-erradas').textContent = estado.erradas;
+    var ap = estado.respondidas > 0 ? Math.round((estado.certas / estado.respondidas) * 100) + '%' : '—';
+    document.getElementById('s-aproveitamento').textContent = ap;
+
+    if (estado.respondidas === total) {
+      var res = document.getElementById('resultado');
+      var nota = Math.round((estado.certas / total) * 100);
+      document.getElementById('res-titulo').textContent =
+        nota >= 75 ? 'Excelente desempenho!' : nota >= 50 ? 'Bom esforço!' : 'Continue estudando!';
+      document.getElementById('res-texto').textContent =
+        estado.certas + ' de ' + total + ' questões corretas — aproveitamento de ' + nota + '%. ' +
+        'Revise os gabaritos comentados para reforçar os conceitos.';
+      res.classList.add('visible');
+      res.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  document.querySelectorAll('.questao').forEach(function(q) {
+    var correta = q.querySelector('.q-alternativas').dataset.resposta;
+    var num = q.id.replace('q', '');
+    var gabarito = document.getElementById('g' + num);
+    var respondida = false;
+
+    q.querySelectorAll('li').forEach(function(li) {
+      li.addEventListener('click', function() {
+        if (respondida) return;
+        respondida = true;
+        estado.respondidas++;
+
+        var alt = li.dataset.alt;
+        if (alt === correta) {
+          li.classList.add('correta');
+          estado.certas++;
+        } else {
+          li.classList.add('errada');
+          estado.erradas++;
+          q.querySelectorAll('li[data-alt="' + correta + '"]').forEach(function(c) {
+            c.classList.add('correta');
+          });
+        }
+        q.querySelectorAll('li').forEach(function(x) { x.classList.add('disabled'); });
+        gabarito.classList.add('visible');
+        atualizar();
+      });
+    });
+  });
+
+  function resetar() {
+    estado = { respondidas: 0, certas: 0, erradas: 0 };
+    document.querySelectorAll('.q-alternativas li').forEach(function(li) {
+      li.classList.remove('correta', 'errada', 'disabled');
+    });
+    document.querySelectorAll('.q-gabarito').forEach(function(g) {
+      g.classList.remove('visible');
+    });
+    document.getElementById('resultado').classList.remove('visible');
+    atualizar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
