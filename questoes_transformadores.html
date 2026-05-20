@@ -18,6 +18,40 @@
   }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
 
+  /* TELA DE AVISO */
+  .tela-aviso {
+    display: none; min-height: 100vh; align-items: center;
+    justify-content: center; padding: 2rem;
+  }
+  .tela-aviso.visible { display: flex; }
+  .aviso-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); padding: 2.5rem 2rem; max-width: 420px; width: 100%;
+    box-shadow: 0 4px 32px rgba(26,24,20,0.08); text-align: center;
+  }
+  .aviso-icone { font-size: 2.5rem; margin-bottom: 1rem; }
+  .aviso-card h2 {
+    font-family: 'DM Serif Display', serif; font-size: 1.5rem;
+    font-weight: 400; margin-bottom: 12px; color: var(--ink);
+  }
+  .aviso-card p {
+    font-size: 14px; color: var(--ink-2); line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+  .aviso-card strong { color: var(--accent); }
+  .aviso-destaque {
+    background: var(--gold-light); border-left: 3px solid var(--gold);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 12px 16px; margin-bottom: 1.5rem;
+    font-size: 13px; color: var(--ink-2); line-height: 1.6; text-align: left;
+  }
+  .btn-ok {
+    width: 100%; padding: 12px; background: var(--accent); color: #FFFDF8;
+    border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-ok:hover { opacity: 0.85; }
+
   /* TELA DE IDENTIFICAÇÃO */
   .tela-id {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -186,6 +220,24 @@
 </div>
 
 <!-- ══════════════════════════════════════════════
+     TELA DE AVISO
+═══════════════════════════════════════════════ -->
+<div class="tela-aviso" id="telaAviso">
+  <div class="aviso-card">
+    <div class="aviso-icone">📘</div>
+    <h2>Atenção antes de começar</h2>
+    <p>Esta atividade é baseada exclusivamente no catálogo técnico da <strong>Tamura Indusul</strong>.</p>
+    <div class="aviso-destaque">
+      Todas as questões devem ser respondidas com consulta direta ao
+      <strong>Catálogo Tamura Indusul — Transformadores de Baixa Tensão</strong>.
+      As respostas corretas estão nas tabelas e especificações do catálogo —
+      não utilize outras fontes.
+    </div>
+    <button class="btn-ok" onclick="irParaQuiz()">Entendido, iniciar questões →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
      TELA DO QUIZ
 ═══════════════════════════════════════════════ -->
 <div class="tela-quiz" id="telaQuiz">
@@ -339,10 +391,15 @@ function iniciar() {
     document.getElementById("idErro").style.display = "block";
     return;
   }
-  nomeAluno  = nome;
-  document.getElementById("telaId").style.display   = "none";
-  document.getElementById("telaQuiz").style.display = "block";
-  document.getElementById("alunoNome").textContent  = nome;
+  nomeAluno = nome;
+  document.getElementById("telaId").style.display = "none";
+  document.getElementById("telaAviso").classList.add("visible");
+}
+
+function irParaQuiz() {
+  document.getElementById("telaAviso").style.display  = "none";
+  document.getElementById("telaQuiz").style.display   = "block";
+  document.getElementById("alunoNome").textContent    = nomeAluno;
 }
 
 // ══════════════════════════════════════════════
